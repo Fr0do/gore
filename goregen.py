@@ -122,6 +122,12 @@ tl(L):
     query_elem = random.choice(lst + ["z"])  # sometimes ask for non-member
     return src, "color", [], lst  # simplified: just enumerate
 
+def _atom_name(i):
+    """Generate atom names: a, b, ..., z, aa, ab, ..., az, ba, ..."""
+    if i < 26:
+        return chr(ord('a') + i)
+    return _atom_name(i // 26 - 1) + chr(ord('a') + i % 26)
+
 def gen_simple_fork_task(depth=None, width=None):
     """
     Generate nested FORK structure of given depth and width.
@@ -129,7 +135,7 @@ def gen_simple_fork_task(depth=None, width=None):
     """
     d = depth or random.randint(1, 3)
     w = width or random.randint(2, 4)
-    atoms = [chr(ord('a') + i) for i in range(w ** d)]
+    atoms = [_atom_name(i) for i in range(w ** d)]
 
     def make_body(items, cur_depth):
         if cur_depth == 0 or len(items) == 1:
