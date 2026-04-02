@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-GORE (Graph Of Recursive Execution) — minimal Turing-complete programming language for studying backtracking multi-step reasoning in LLMs. Novel syntax with zero pretraining leakage, verifiable ground truth via interpreter, and curriculum-by-design.
+GORE (Graph Of Recursive Execution) — a formal language for verifiable recursive decomposition, bridging theorem proving (Lean/Coq), structured query decomposition (Text-to-SQL), and natural language reasoning. Minimal syntax with zero pretraining leakage, step-level verification via interpreter, and curriculum-by-design.
 
 ## Running
 
@@ -28,20 +28,29 @@ Two Python files, no external dependencies:
 - **`gore.py`** — Full interpreter: tokenizer (regex-based), recursive-descent parser, AST, unification-based environment (`Env` class with immutable bindings + parent pointers), generator-based backtracking interpreter. `CutException` implements labeled pruning.
 - **`goregen.py`** — Synthetic data generator. Three task generators: `gen_color_task`, `gen_simple_fork_task`, `gen_graph_task`. Curriculum system with 5 difficulty levels parameterized by `(depth, width)`. Output: JSONL with program, query, trace, solutions.
 
-## Language: Three Primitives
+## Language: 5 Primitives (3 implemented, 2 planned)
 
 1. **STEP** `X = expr` — deterministic unification/binding
 2. **FORK** `? { b1 | b2 | ... }` — non-deterministic branching (all branches live simultaneously)
 3. **CUT** `! lhs = rhs -> name` — labeled pruning (kills current branch on unification failure)
+4. **LET** `X := expr` — deterministic computation (arithmetic, strings, structures) *(planned)*
+5. **CALL** `Result = @fn(args)` — external calls with trace logging *(planned)*
 
-No arithmetic, no types, no built-ins — only unification.
+## Known Issues / Priorities
 
-## Known Issues (Priority Order)
+Bugs #1–#4 from the previous list are fixed. Current priorities:
 
-1. Level 4 curriculum (`depth=3, width=3`) generates 0 examples — off-by-one in `make_body` atom partitioning
-2. CUT semantics: `CutException` propagation in nested FORKs needs verification
-3. `gen_graph_task` — graph reachability is stubbed but broken
-4. Rust VM port (`gorevm`) planned for 1M examples/minute throughput
+- **Priority 1:** LET + CALL primitives in grammar and interpreter; update trace format to 5 node types; update goregen.py
+- **Priority 2:** `sql2gore.py` (Spider/BIRD → GORE via CTE trees), `lean2gore.py` (mathlib4/CoqGym → GORE via tactic mapping)
+- **Priority 3:** Dr. GRPO + dense reward (`gore_reward`), `gore2sft.py`, `goreeval.py`
+- **Priority 4:** Rust VM (`gorevm`) — 1M examples/minute target
+
+## Timeline (NeurIPS 2026 workshop, abstract May 4)
+
+- Now → Apr 14: LET+CALL in interpreter, lean2gore.py prototype
+- Apr 14 → Apr 21: Lean pretraining data prep, Dr. GRPO implementation
+- Apr 21 → Apr 28: E1 + E2a/E2b experiments
+- Apr 28 → May 4: LaTeX draft finalize, abstract submit
 
 ## Git Conventions (OUROBOROS protocol)
 
@@ -64,5 +73,4 @@ No arithmetic, no types, no built-ins — only unification.
 
 ## Key Documentation
 
-- `GORE_AGENT_PROMPT.md` — complete language spec, grammar, API docs, and prioritized TODOs
-- `GORE_RESEARCH_AGENT_PROMPT.md` — NeurIPS 2026 workshop paper instructions (Spectral-R1)
+- `GORE_MASTER_PLAN.md` — complete research & code plan (single source of truth)
