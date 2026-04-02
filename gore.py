@@ -55,6 +55,29 @@ class CallStmt:
     args: list  # list of expr
 
 @dataclass
+class Num:
+    value: int
+    def __repr__(self): return str(self.value)
+
+@dataclass
+class BinOp:
+    op: str
+    left: Any
+    right: Any
+    def __repr__(self): return f"({self.left} {self.op} {self.right})"
+
+@dataclass
+class Let:
+    var: str
+    expr: Any
+
+@dataclass
+class ExtCall:
+    var: str
+    fn_name: str
+    args: list
+
+@dataclass
 class Seq:
     stmts: list
 
@@ -74,6 +97,7 @@ class Program:
 TOKEN_RE = re.compile(r"""
     (?P<COMMENT>\#[^\n]*)           |
     (?P<ARROW>->)                   |
+    (?P<ASSIGN>:=)                  |
     (?P<LPAREN>\()                  |
     (?P<RPAREN>\))                  |
     (?P<LBRACE>\{)                  |
@@ -81,10 +105,16 @@ TOKEN_RE = re.compile(r"""
     (?P<PIPE>\|)                    |
     (?P<QMARK>\?)                   |
     (?P<BANG>!)                     |
+    (?P<AT>@)                       |
+    (?P<PLUS>\+)                    |
+    (?P<MINUS>-)                    |
+    (?P<STAR>\*)                    |
+    (?P<SLASH>/)                    |
     (?P<COLON>:)                    |
     (?P<SEMI>;)                     |
     (?P<EQ>=)                       |
     (?P<COMMA>,)                    |
+    (?P<NUM>[0-9]+)                 |
     (?P<VAR>[A-Z][a-zA-Z0-9_]*)    |
     (?P<ATOM>[a-z][a-zA-Z0-9_]*)   |
     (?P<WS>\s+)
@@ -161,6 +191,12 @@ class Parser:
             return self.parse_cut()
 
         if kind == 'VAR':
+            if self.pos + 1 < len(self.tokens) and self.tokens[self.pos + 1][0] == 'ASSIGN':
+                return self.parse_let()
+            if (self.pos + 2 < len(self.tokens) and
+                self.tokens[self.pos + 1][0] == 'EQ' and
+                self.tokens[self.pos + 2][0] == 'AT'):
+                return self.parse_extcall()
             return self.parse_step()
 
         if kind == 'ATOM':
@@ -201,6 +237,9 @@ class Parser:
         if kind == 'VAR':
             self.consume('VAR')
             return Var(val)
+        if kind == 'NUM':
+            self.consume('NUM')
+            return Num(int(val))
         if kind == 'ATOM':
             self.consume('ATOM')
             if self.peek()[0] == 'LPAREN':
@@ -214,6 +253,34 @@ class Parser:
                 return Call(val, args)
             return Atom(val)
         raise SyntaxError(f"Expected expr, got {self.peek()}")
+
+    def parse_arith_expr(self):
+        left = self.parse_expr()
+        while self.peek()[0] in ('PLUS', 'MINUS', 'STAR', 'SLASH'):
+            op_tok = self.consume()
+            right = self.parse_expr()
+            left = BinOp(op_tok[1], left, right)
+        return left
+
+    def parse_let(self):
+        var = self.consume('VAR')[1]
+        self.consume('ASSIGN')
+        expr = self.parse_arith_expr()
+        return Let(var, expr)
+
+    def parse_extcall(self):
+        var = self.consume('VAR')[1]
+        self.consume('EQ')
+        self.consume('AT')
+        fn_name = self.consume('ATOM')[1]
+        self.consume('LPAREN')
+        args = []
+        while self.peek()[0] != 'RPAREN':
+            args.append(self.parse_arith_expr())
+            if self.peek()[0] == 'COMMA':
+                self.consume('COMMA')
+        self.consume('RPAREN')
+        return ExtCall(var, fn_name, args)
 
 
 # ─── ENVIRONMENT ─────────────────────────────────────────────────────────────
@@ -262,6 +329,8 @@ class Env:
             return self.extend(r.name, l)
         if isinstance(l, Atom) and isinstance(r, Atom):
             return self if l.name == r.name else None
+        if isinstance(l, Num) and isinstance(r, Num):
+            return self if l.value == r.value else None
         if isinstance(l, Call) and isinstance(r, Call):
             if l.name != r.name or len(l.args) != len(r.args):
                 return None
@@ -284,10 +353,37 @@ class CutException(Exception):
         self.label = label
 
 class GoreInterpreter:
+    MOCK_FUNCTIONS = {
+        'add': lambda args: Num(args[0].value + args[1].value) if all(isinstance(a, Num) for a in args) else None,
+        'mul': lambda args: Num(args[0].value * args[1].value) if all(isinstance(a, Num) for a in args) else None,
+        'sub': lambda args: Num(args[0].value - args[1].value) if all(isinstance(a, Num) for a in args) else None,
+        'len': lambda args: Num(len(args[0].args)) if isinstance(args[0], Call) else Num(1),
+        'concat': lambda args: Atom(repr(args[0]) + repr(args[1])),
+    }
+
     def __init__(self, program: Program):
         self.program = program
         self.trace = []
         self.depth = 0
+
+    def eval_arith(self, expr, env):
+        if isinstance(expr, Num):
+            return expr
+        if isinstance(expr, BinOp):
+            l = self.eval_arith(expr.left, env)
+            r = self.eval_arith(expr.right, env)
+            if isinstance(l, Num) and isinstance(r, Num):
+                ops = {'+': lambda a, b: a + b, '-': lambda a, b: a - b,
+                       '*': lambda a, b: a * b, '/': lambda a, b: a // b}
+                return Num(ops[expr.op](l.value, r.value))
+            return Call(expr.op, [l, r])
+        if isinstance(expr, Var):
+            return env.resolve(expr)
+        if isinstance(expr, Atom):
+            return expr
+        if isinstance(expr, Call):
+            return Call(expr.name, [self.eval_arith(a, env) for a in expr.args])
+        return self.eval_expr(expr, env)
 
     def eval_expr(self, expr, env):
         if isinstance(expr, Atom):
@@ -362,6 +458,25 @@ class GoreInterpreter:
 
         if isinstance(node, Seq):
             yield from self._exec_seq(node.stmts, env, clause_name)
+            return
+
+        if isinstance(node, Let):
+            val = self.eval_arith(node.expr, env)
+            new_env = env.extend(node.var, val)
+            self.trace.append(f"LET {node.var} := {val}")
+            yield new_env, True
+            return
+
+        if isinstance(node, ExtCall):
+            args = [self.eval_arith(a, env) for a in node.args]
+            if node.fn_name in self.MOCK_FUNCTIONS:
+                result = self.MOCK_FUNCTIONS[node.fn_name](args)
+                if result is not None:
+                    new_env = env.extend(node.var, result)
+                    self.trace.append(f"CALL {node.var} = @{node.fn_name}({', '.join(map(repr, args))}) → {result}")
+                    yield new_env, True
+            else:
+                raise RuntimeError(f"Unknown external function: @{node.fn_name}")
             return
 
         if isinstance(node, CallStmt):
