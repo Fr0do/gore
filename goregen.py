@@ -167,10 +167,81 @@ def gen_simple_fork_task(depth=None, width=None):
 
 # ─── DATASET GENERATOR ───────────────────────────────────────────────────────
 
+def gen_arith_task(n_ops=None):
+    """Generate arithmetic task using LET primitive."""
+    n = n_ops or random.randint(2, 5)
+    ops = ['+', '-', '*']
+
+    lines = []
+    var_names = [chr(ord('A') + i) for i in range(n + 1)]  # A, B, C, ...
+
+    # First var gets a random number
+    val = random.randint(1, 20)
+    lines.append(f"    {var_names[0]} := {val}")
+
+    for i in range(1, n):
+        op = random.choice(ops)
+        operand = random.randint(1, 10)
+        lines.append(f"    {var_names[i]} := {var_names[i-1]} {op} {operand}")
+
+    # Final: X = last var
+    lines.append(f"    X = {var_names[n-1]}")
+
+    body = ";\n".join(lines)
+    src = f"compute(X):\n{body}\n"
+    return src, "compute", [], []
+
+
+def gen_call_task(n_calls=None):
+    """Generate task using CALL primitive with mock functions."""
+    n = n_calls or random.randint(2, 4)
+    fns = ['add', 'mul', 'sub']
+
+    lines = []
+    # Start with two random numbers
+    lines.append(f"    A := {random.randint(1, 20)}")
+    lines.append(f"    B := {random.randint(1, 20)}")
+
+    prev_var = 'B'
+    var_idx = 2  # C, D, E...
+    for i in range(n):
+        fn = random.choice(fns)
+        var = chr(ord('A') + var_idx)
+        operand_var = chr(ord('A') + random.randint(0, var_idx - 1))
+        lines.append(f"    {var} = @{fn}({prev_var}, {operand_var})")
+        prev_var = var
+        var_idx += 1
+
+    lines.append(f"    X = {prev_var}")
+    body = ";\n".join(lines)
+    src = f"compute(X):\n{body}\n"
+    return src, "compute", [], []
+
+
+def gen_mixed_task(depth=None, width=None):
+    """Generate task mixing FORK, LET, and CALL primitives."""
+    d = depth or 1
+    w = width or random.randint(2, 3)
+
+    branches = []
+    for i in range(w):
+        a = random.randint(1, 10)
+        b = random.randint(1, 10)
+        fn = random.choice(['add', 'mul'])
+        branches.append(f"        A := {a};\n        B := {b};\n        X = @{fn}(A, B)")
+
+    fork_body = "\n      | ".join(branches)
+    src = f"compute(X):\n    ? {{\n{fork_body}\n    }}\n"
+    return src, "compute", [], []
+
+
 GENERATORS = [
     gen_color_task,
     gen_simple_fork_task,
     gen_graph_task,
+    gen_arith_task,
+    gen_call_task,
+    gen_mixed_task,
 ]
 
 def generate_example(generator=None):
