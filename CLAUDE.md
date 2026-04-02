@@ -43,6 +43,25 @@ No arithmetic, no types, no built-ins — only unification.
 3. `gen_graph_task` — graph reachability is stubbed but broken
 4. Rust VM port (`gorevm`) planned for 1M examples/minute throughput
 
+## Git Conventions (OUROBOROS protocol)
+
+- Linear history (rebase, not merge). Commit & push by default.
+- Prefix: `[feat]`, `[fix]`, `[doc]`, `[infra]`, `[gen]` (for goregen changes)
+- `fixes #N` in commits to auto-close issues
+- Create issue before any feature/fix code
+- Research issues → `Fr0do/gore`, infra issues → `Fr0do/ourosss`
+
+## Cost Discipline
+
+- Opus for planning, architecture, debugging
+- Sonnet subagent for implementation (>20 lines of code)
+- Haiku subagent for exploration, search, summarization
+
+## Related Repos
+
+- Paper: [Fr0do/gore-paper](https://github.com/Fr0do/gore-paper)
+- Protocol: [Fr0do/ourosss](https://github.com/Fr0do/ourosss)
+
 ## Key Documentation
 
 - `GORE_AGENT_PROMPT.md` — complete language spec, grammar, API docs, and prioritized TODOs
