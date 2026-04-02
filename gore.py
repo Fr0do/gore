@@ -50,6 +50,11 @@ class Cut:
     label: str      # clause name to return to on failure
 
 @dataclass
+class CallStmt:
+    name: str
+    args: list  # list of expr
+
+@dataclass
 class Seq:
     stmts: list
 
@@ -157,6 +162,12 @@ class Parser:
 
         if kind == 'VAR':
             return self.parse_step()
+
+        if kind == 'ATOM':
+            expr = self.parse_expr()
+            if isinstance(expr, Call):
+                return CallStmt(expr.name, expr.args)
+            raise SyntaxError(f"Expected call, got atom: {expr}")
 
         raise SyntaxError(f"Unexpected token {self.peek()} at pos {self.pos}")
 
@@ -351,6 +362,23 @@ class GoreInterpreter:
 
         if isinstance(node, Seq):
             yield from self._exec_seq(node.stmts, env, clause_name)
+            return
+
+        if isinstance(node, CallStmt):
+            self.trace.append(f"CALL {node.name}({', '.join(map(repr, node.args))})")
+            args = [self.eval_expr(a, env) for a in node.args]
+            for sub_env, _ in self._call(node.name, args, env):
+                # Merge sub_env bindings back — only for vars that exist in our env
+                merged = env
+                for arg in node.args:
+                    if isinstance(arg, Var):
+                        val = sub_env.resolve(arg)
+                        new_merged = merged.unify(arg, val)
+                        if new_merged is None:
+                            break
+                        merged = new_merged
+                else:
+                    yield merged, True
             return
 
         raise RuntimeError(f"Unknown node: {node}")
