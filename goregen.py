@@ -51,7 +51,7 @@ def gen_graph_task(n_nodes=None, n_edges=None):
     nodes = [chr(ord('a') + i) for i in range(n)]
 
     # Random DAG edges (only forward to avoid cycles)
-    max_edges = n_edges or random.randint(n - 1, n * 2)
+    max_edges = n_edges or random.randint(n - 1, min(n * 2, n * (n - 1) // 2))
     edges = set()
     for i in range(len(nodes) - 1):
         edges.add((nodes[i], nodes[i + 1]))  # ensure connectivity
@@ -60,32 +60,45 @@ def gen_graph_task(n_nodes=None, n_edges=None):
         if i < j:
             edges.add((nodes[i], nodes[j]))
 
+    # Each edge is a FORK branch with two STEPs
     edge_branches = "\n      | ".join(
         f"X = {u}; Y = {v}" for u, v in sorted(edges)
     )
 
     src = f"""edge(X, Y):
     ? {{
-        X = {edge_branches}
+        {edge_branches}
     }}
 
 reachable(X, Y):
     ? {{
-        X = Y
-      | Z = neighbor(X);
-        edge(X, Z);
+        edge(X, Y)
+      | edge(X, Z);
         reachable(Z, Y)
     }}
-
-neighbor(X):
-    ? {{
-        {chr(10)+"      | ".join(f"X = {u}; R = {v}; R = R" for u, v in sorted(edges))}
-    }}
 """
-    # Pick random reachable pair
+    # Pick a start node and find all reachable nodes via BFS
     start = random.choice(nodes[:-1])
-    goal  = random.choice(nodes[nodes.index(start):])
-    return src, "reachable", [start, goal], edges
+    edge_dict = {}
+    for u, v in edges:
+        edge_dict.setdefault(u, []).append(v)
+
+    reachable_from_start = set()
+    queue = [start]
+    while queue:
+        curr = queue.pop(0)
+        for neighbor in edge_dict.get(curr, []):
+            if neighbor not in reachable_from_start:
+                reachable_from_start.add(neighbor)
+                queue.append(neighbor)
+
+    # Pick a reachable goal (or start itself for trivial case)
+    if reachable_from_start:
+        goal = random.choice(sorted(reachable_from_start))
+    else:
+        goal = start  # X = X is always reachable (first branch)
+
+    return src, "reachable", [start, goal], sorted(edges)
 
 def gen_member_task(list_size=None):
     """Generate list membership task."""
@@ -157,6 +170,7 @@ def gen_simple_fork_task(depth=None, width=None):
 GENERATORS = [
     gen_color_task,
     gen_simple_fork_task,
+    gen_graph_task,
 ]
 
 def generate_example(generator=None):

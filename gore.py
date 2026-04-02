@@ -367,17 +367,21 @@ class GoreInterpreter:
         if isinstance(node, CallStmt):
             self.trace.append(f"CALL {node.name}({', '.join(map(repr, node.args))})")
             args = [self.eval_expr(a, env) for a in node.args]
+            clauses = self.program.clauses.get(node.name, [])
+            params = clauses[0].params if clauses else []
             for sub_env, _ in self._call(node.name, args, env):
-                # Merge sub_env bindings back — only for vars that exist in our env
+                # Map each clause param's resolved value back to the caller's arg
                 merged = env
-                for arg in node.args:
+                ok = True
+                for arg, param in zip(node.args, params):
                     if isinstance(arg, Var):
-                        val = sub_env.resolve(arg)
+                        val = sub_env.resolve(Var(param))
                         new_merged = merged.unify(arg, val)
                         if new_merged is None:
+                            ok = False
                             break
                         merged = new_merged
-                else:
+                if ok:
                     yield merged, True
             return
 
