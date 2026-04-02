@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:#0a0a08;color:#e8e6df;min-height:100vh;display:flex;flex-direction:column}
+.deck{width:100%;max-width:720px;margin:0 auto;padding:0 0 20px;flex:1}
+.slide{display:none;min-height:460px;padding:44px 40px;position:relative;flex-direction:column;justify-content:center}
+.slide.active{display:flex}
+.slide-num{position:absolute;top:18px;right:24px;font-family:'DM Mono',monospace;font-size:11px;color:#888780;letter-spacing:2px}
+.tag{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#c8391a;margin-bottom:14px}
+h1{font-size:44px;font-weight:300;line-height:1.05;letter-spacing:-1.5px;color:#e8e6df;margin-bottom:8px}
+.gore-word{font-weight:500;color:#e85a2a;font-family:'DM Mono',monospace}
+h2{font-size:26px;font-weight:300;letter-spacing:-0.5px;margin-bottom:20px;color:#e8e6df}
+.subtitle{font-size:14px;color:#888780;line-height:1.6;max-width:480px;margin-bottom:28px}
+.code-block{font-family:'DM Mono',monospace;font-size:12px;line-height:1.9;background:#111110;border:0.5px solid rgba(255,255,255,0.08);border-left:2px solid #c8391a;border-radius:6px;padding:14px 18px;color:#c8c5bc;margin:14px 0}
+.kw{color:#e85a2a}.cm{color:#888780}.vr{color:#d4a847}.at{color:#7ec8a0}
+.pillars{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+.pillar{background:#111110;border:0.5px solid rgba(255,255,255,0.08);border-radius:8px;padding:14px 16px}
+.pillar-num{font-family:'DM Mono',monospace;font-size:10px;color:#c8391a;letter-spacing:2px;margin-bottom:5px}
+.pillar-title{font-size:13px;font-weight:500;color:#e8e6df;margin-bottom:3px}
+.pillar-desc{font-size:11px;color:#888780;line-height:1.5}
+.table-wrap{margin-top:14px;border:0.5px solid rgba(255,255,255,0.08);border-radius:8px;overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:12px;font-family:'DM Mono',monospace}
+th{background:#111110;padding:9px 13px;text-align:left;color:#888780;font-size:10px;letter-spacing:2px;text-transform:uppercase;border-bottom:0.5px solid rgba(255,255,255,0.08)}
+td{padding:9px 13px;border-bottom:0.5px solid rgba(255,255,255,0.08);color:#e8e6df;vertical-align:top}
+tr:last-child td{border-bottom:none}
+td.hl{color:#e85a2a}td.mu{color:#888780}
+.tree-vis{font-family:'DM Mono',monospace;font-size:12px;line-height:2;background:#111110;border:0.5px solid rgba(255,255,255,0.08);border-radius:8px;padding:14px 18px;margin:14px 0}
+.nf{color:#d4a847}.ns{color:#7ec8a0}.nc{color:#c8391a}
+.roadmap{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.road-item{display:flex;align-items:flex-start;gap:12px}
+.road-dot{width:6px;height:6px;border-radius:50%;background:#c8391a;margin-top:6px;flex-shrink:0}
+.road-dot.done{background:#7ec8a0}.road-dot.pending{background:#888780}
+.road-text{font-size:13px;color:#e8e6df;line-height:1.5}
+.road-sub{font-size:11px;color:#888780;font-family:'DM Mono',monospace}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:14px 40px;border-top:0.5px solid rgba(255,255,255,0.08);background:#0a0a08}
+.nav-dots{display:flex;gap:6px}
+.dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.12);cursor:pointer;transition:background 0.2s}
+.dot.active{background:#e85a2a}
+button{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;color:#888780;background:none;border:0.5px solid rgba(255,255,255,0.12);border-radius:4px;padding:8px 16px;cursor:pointer;transition:all 0.15s}
+button:hover{color:#e8e6df;border-color:rgba(255,255,255,0.25)}
+button:disabled{opacity:0.25;cursor:default}
+.divider{width:32px;height:1px;background:#c8391a;margin:14px 0 18px}
+.hbox{background:rgba(200,57,26,0.08);border:0.5px solid rgba(200,57,26,0.3);border-radius:8px;padding:12px 16px;margin:10px 0}
+.hbox p{font-size:12px;line-height:1.6;color:#e8e6df}
+.hl-label{font-family:'DM Mono',monospace;font-size:10px;color:#c8391a;letter-spacing:2px;margin-bottom:5px}
+</style>
+
+<div class="deck">
+<div class="slide active" id="s0">
+  <span class="slide-num">01 / 06</span>
+  <div class="tag">Research Proposal</div>
+  <h1><span class="gore-word">GORE</span><br>Graph Of<br>Recursive Execution</h1>
+  <div class="divider"></div>
+  <p class="subtitle">A minimal Turing-complete language designed as a controlled training environment for backtracking reasoning in small LLMs. Zero pretraining leakage. Infinite synthetic data. Verifiable ground truth.</p>
+  <div style="font-family:'DM Mono',monospace;font-size:11px;color:#888780;margin-top:auto">Spectral-R1 ablation candidate · NeurIPS 2026</div>
+</div>
+
+<div class="slide" id="s1">
+  <span class="slide-num">02 / 06</span>
+  <div class="tag">The Problem</div>
+  <h2>We can't study reasoning in a clean room</h2>
+  <p class="subtitle">When you train an LLM to reason on Python or natural language, you can't tell if it learned to reason or just memorized pretraining patterns.</p>
+  <div class="pillars">
+    <div class="pillar"><div class="pillar-num">01</div><div class="pillar-title">Pretraining leakage</div><div class="pillar-desc">Models already know Python. Any capability could be retrieval, not reasoning.</div></div>
+    <div class="pillar"><div class="pillar-num">02</div><div class="pillar-title">No dense reward</div><div class="pillar-desc">CoT is unstructured text. No intermediate verifiable steps between prompt and answer.</div></div>
+    <div class="pillar"><div class="pillar-num">03</div><div class="pillar-title">OOD unclear</div><div class="pillar-desc">Hard to define out-of-distribution for natural language tasks.</div></div>
+    <div class="pillar"><div class="pillar-num">04</div><div class="pillar-title">Backtracking implicit</div><div class="pillar-desc">Search is hidden inside the model. Nothing to inspect or supervise directly.</div></div>
+  </div>
+</div>
+
+<div class="slide" id="s2">
+  <span class="slide-num">03 / 06</span>
+  <div class="tag">The Language</div>
+  <h2>Three primitives. Full Turing power.</h2>
+  <p class="subtitle">GORE programs are explicit search trees. Every execution is a verifiable, inspectable graph of decisions.</p>
+  <div class="code-block">
+<span class="cm"># STEP — deterministic unification</span>
+<span class="vr">X</span> = <span class="at">red</span>
+
+<span class="cm"># FORK — all branches live simultaneously</span>
+<span class="kw">?</span> { <span class="vr">X</span> = <span class="at">a</span> | <span class="vr">X</span> = <span class="at">b</span> | <span class="vr">X</span> = <span class="at">c</span> }
+
+<span class="cm"># CUT — prune branch on unification failure</span>
+<span class="kw">!</span> <span class="vr">X</span> = <span class="at">goal</span> -> <span class="at">search</span>
+  </div>
+  <div class="tree-vis">
+<span class="nf">FORK (3 branches)</span>
+  <span class="ns">branch[0] → STEP X = red   ✓</span>
+  <span class="ns">branch[1] → STEP X = green ✓</span>
+  <span class="nc">branch[2] → CUT failed → backtrack</span>
+  </div>
+</div>
+
+<div class="slide" id="s3">
+  <span class="slide-num">04 / 06</span>
+  <div class="tag">Key Properties</div>
+  <h2>Designed for ML from the ground up</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Property</th><th>GORE</th><th>Python / CoT</th></tr></thead>
+      <tbody>
+        <tr><td>Pretraining leakage</td><td class="hl">Zero</td><td class="mu">High</td></tr>
+        <tr><td>Ground truth</td><td class="hl">Interpreter exact</td><td class="mu">Human annotation</td></tr>
+        <tr><td>OOD axis</td><td class="hl">Tree depth × width</td><td class="mu">Undefined</td></tr>
+        <tr><td>Reward signal</td><td class="hl">Every STEP/FORK/CUT</td><td class="mu">End only</td></tr>
+        <tr><td>Search tree</td><td class="hl">Explicit, first-class</td><td class="mu">Implicit</td></tr>
+        <tr><td>Curriculum</td><td class="hl">By design (d × w)</td><td class="mu">Manual</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="hbox">
+    <div class="hl-label">Core Hypothesis</div>
+    <p>A micro-LLM trained on GORE traces will show better OOD generalization on unseen tree depths than a larger model trained on natural language CoT — because the inductive bias of the language matches the inductive bias of the task.</p>
+  </div>
+</div>
+
+<div class="slide" id="s4">
+  <span class="slide-num">05 / 06</span>
+  <div class="tag">Experiments</div>
+  <h2>Four clean ablations</h2>
+  <p class="subtitle">All experiments run at micro-LLM scale (GPT-2). Curriculum over 5 levels of tree complexity.</p>
+  <div class="pillars">
+    <div class="pillar"><div class="pillar-num">E1</div><div class="pillar-title">SFT on traces</div><div class="pillar-desc">Train on (program, query) → trace → solutions. Measure OOD at depth=4, width=5.</div></div>
+    <div class="pillar"><div class="pillar-num">E2</div><div class="pillar-title">GRPO + interpreter reward</div><div class="pillar-desc">Use gorevm as verifier. Dense reward on each step. Compare to E1.</div></div>
+    <div class="pillar"><div class="pillar-num">E3</div><div class="pillar-title">Spectral analysis</div><div class="pillar-desc">Measure activation spectra during FORK vs CUT vs STEP. Clean env → clean signal.</div></div>
+    <div class="pillar"><div class="pillar-num">E4</div><div class="pillar-title">Transfer to NL</div><div class="pillar-desc">Does GORE-trained backtracking transfer to natural language multi-hop QA?</div></div>
+  </div>
+</div>
+
+<div class="slide" id="s5">
+  <span class="slide-num">06 / 06</span>
+  <div class="tag">Status & Roadmap</div>
+  <h2>What exists. What's next.</h2>
+  <div class="roadmap">
+    <div class="road-item"><div class="road-dot done"></div><div><div class="road-text">Python interpreter complete</div><div class="road-sub">gore.py · full unification + backtracking · working</div></div></div>
+    <div class="road-item"><div class="road-dot done"></div><div><div class="road-text">Curriculum data generator working</div><div class="road-sub">goregen.py · 800 examples · 4 curriculum levels</div></div></div>
+    <div class="road-item"><div class="road-dot"></div><div><div class="road-text">Rust VM (gorevm) for mass generation</div><div class="road-sub">target: 1M examples/min · explicit worklist interpreter</div></div></div>
+    <div class="road-item"><div class="road-dot"></div><div><div class="road-text">Graph + list task generators</div><div class="road-sub">reachability, membership — exercises CUT + nested FORK</div></div></div>
+    <div class="road-item"><div class="road-dot pending"></div><div><div class="road-text">SFT format + eval harness</div><div class="road-sub">gore2sft.py · goreeval.py · HuggingFace Dataset</div></div></div>
+    <div class="road-item"><div class="road-dot pending"></div><div><div class="road-text">E1–E4 experiments</div><div class="road-sub">workshop paper target: NeurIPS 2026 workshop</div></div></div>
+  </div>
+</div>
+</div>
+
+<div class="nav">
+  <button id="btn-prev" onclick="go(-1)" disabled>← PREV</button>
+  <div class="nav-dots" id="dots"></div>
+  <button id="btn-next" onclick="go(1)">NEXT →</button>
+</div>
+
+<script>
+var N = 6;
+var cur = 0;
+var dotsEl = document.getElementById('dots');
+
+for (var i = 0; i < N; i++) {
+  var d = document.createElement('div');
+  d.className = 'dot' + (i === 0 ? ' active' : '');
+  d.setAttribute('data-i', i);
+  d.onclick = function() { goTo(parseInt(this.getAttribute('data-i'))); };
+  dotsEl.appendChild(d);
+}
+
+function goTo(n) {
+  document.getElementById('s' + cur).classList.remove('active');
+  dotsEl.children[cur].classList.remove('active');
+  cur = n;
+  document.getElementById('s' + cur).classList.add('active');
+  dotsEl.children[cur].classList.add('active');
+  document.getElementById('btn-prev').disabled = cur === 0;
+  document.getElementById('btn-next').disabled = cur === N - 1;
+}
+
+function go(d) {
+  var next = cur + d;
+  if (next >= 0 && next < N) goTo(next);
+}
+</script>

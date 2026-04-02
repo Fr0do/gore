@@ -1,0 +1,8 @@
+# test.gore — basic smoke test
+
+color(X):
+    ? {
+        X = red
+      | X = green
+      | X = blue
+    }
